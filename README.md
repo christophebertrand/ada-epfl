@@ -1,2 +1,1 @@
-# ada-epfl
-test line -- by lukas
+Christophe Bertrand, Baptiste Raemy, Lukas Pestalozzi
