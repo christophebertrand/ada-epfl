@@ -3,10 +3,32 @@ import pandas as pd
 import numpy as np
 import requests
 import json
+import warnings
 
-# fetch the google api key
-key_file = open('key.txt', 'r')
-google_key = key_file.read()
+# fetch the google api keys
+google_keys = [line.strip() for line in open('../../google-api-keys.txt', 'r')]
+current_key = 0
+
+def get_key():
+    """
+    returns: the current google api key
+    """
+    return google_keys[current_key]
+
+def next_key():
+    """
+    sets current_key + 1 iff there is another key in the file, does nothing otherwise
+    returns: True iff there is another key, false otherwise
+    """
+    global current_key
+    n = current_key + 1
+    if n >= len(google_keys):
+        print('warning: Tried to switch keys, but there is no key left!!!')
+        return False
+    else:
+        current_key = n
+        print('info: Switching Key')
+        return True
 
 def cantons():
     """
@@ -46,13 +68,12 @@ def find_canton_substring(name):
     name: string
     returns: The canton abbreviation of a canton iff a canton name appears in the given string. othervise returns numpy.nan
     """
-    for (canton_abbrev, canton_names) in cantons.items():
+    for (canton_abbrev, canton_names) in cantons().items():
         for cn in canton_names:
             if cn in name:
                 return canton_abbrev
     return np.nan
 
-# try the geonames REST service
 def find_canton_geonames(name):    
     url_search = 'http://api.geonames.org/searchJSON'
     params = {
@@ -84,7 +105,7 @@ def query_google_place_textsearch(query):
     url_google_places = 'https://maps.googleapis.com/maps/api/place/textsearch/json'
     params = {
         'query' : query,
-        'key': google_key
+        'key': get_key()
     }
     r = requests.get(url_google_places, params=params)
     return json.loads(r.text)
@@ -109,8 +130,10 @@ def parse_google_place_textsearch_answer(answer):
     
     }
     """
+    #print(answer)
     answer_map = {}
     results = answer['results']
+    answer_map['status'] = answer['status']
     answer_map['number_answers'] = len(results)
     for idx, result in enumerate(results):
         answer_map[idx] = {}
@@ -127,8 +150,16 @@ def google_place_textsearch_for(uni_name):
     uni_name: string
     returns: the parsed answers from google places textsearch
     """
-    
+    print('***************************************')
+    print('query: '+ uni_name)
     query_res = query_google_place_textsearch(uni_name)
+    print(query_res) # print the res
+    if query_res['status'] == 'OVER_QUERY_LIMIT' and next_key():
+        # if the key is over the query limit, and there is another key: try again ;)
+        query_res = query_google_place_textsearch(uni_name)
+        print('---------')
+        print(query_res) # print the res again
+    
     return parse_google_place_textsearch_answer(query_res)
     
 def query_geonames_with_position(longitude, latitude):
@@ -184,16 +215,30 @@ def canton_for_university(uni_name):
     returns: a canton for the given university name, or numpy.nan if none was found
     """
     ctn_abbrevs = cantons_for_university(uni_name)
-    # sanitize the cantons array (remove all that is no canton abbrev)
+    
+    # sanitize the cantons array:
+    # (remove all entries that are not canton abbrevs)
     ctn_abbrevs = [c for c in ctn_abbrevs if c in list(cantons().keys())]
-    # take the right canton
+    # (remove duplicates)
+    ctn_abbrevs = list(set(ctn_abbrevs))
+    
+    # ----- take the right canton ----
+    # 0 results from google: try to match a substring. if no match take NaN
+    # 1 result: take it
+    # > 1 result: try substring, if no match warn the user and take the first one.
+    
     ctn = np.nan
     if len(ctn_abbrevs) == 0:
-        ctn = np.nan
+        ctn = find_canton_substring(uni_name)
+        
     if len(ctn_abbrevs) == 1:
         ctn = ctn_abbrevs[0]
+        
     if len(ctn_abbrevs) > 1:
         ctn = find_canton_substring(uni_name)
+        if ctn == np.nan:
+            ctn = ctn_abbrevs[0]
+        warnings.warn('several different cantons for '+ uni_name+' ('+str(ctn_abbrevs)+'). Taking: '+ str(ctn))
     return ctn
 
 def map_universities_to_cantons(uni_names):
