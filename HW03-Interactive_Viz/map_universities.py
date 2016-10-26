@@ -23,7 +23,7 @@ def next_key():
     global current_key
     n = current_key + 1
     if n >= len(google_keys):
-        warnings.warn('Tried to switch keys, but there is no key left!!!')
+        print('warning: Tried to switch keys, but there is no key left!!!')
         return False
     else:
         current_key = n
@@ -250,6 +250,41 @@ def map_universities_to_cantons(uni_names):
     for uni_name in uni_names:
         uni_canton_mapping[uni_name] = canton_for_university(uni_name)
     return uni_canton_mapping
+    
+    
+def get_language(abrev): 
+    """
+    returns: the list of languages of a canton. The list is sorted by main language
+    """
+    lang =   {
+        'AG': ['GR'],
+        'AR': ['GR'], 
+        'AI': ['GR'], 
+        'BL': ['GR'], 
+        'BS': ['GR'], 
+        'BE': ['GR', 'FR'], 
+        'FR': ['FR', 'GR'] ,  
+        'GE': ['FR'], 
+        'GL': ['GR'], 
+        'GR': ['GR'],  
+        'JU': ['FR'],  
+        'LU': ['GR'], 
+        'NE': ['FR'], 
+        'NW': ['GR'], 
+        'OW': ['GR'], 
+        'SG': ['GR'], 
+        'SH': ['GR'], 
+        'SZ': ['GR'], 
+        'SO': ['GR'], 
+        'TG': ['GR'], 
+        'TI': ['IT'], 
+        'UR': ['GR'], 
+        'VD': ['FR'], 
+        'VS': ['FR', 'GR'], 
+        'ZG': ['GR'],
+        'ZH': ['GR']
+    }
+    return lang.get(abrev)
     
 
 
