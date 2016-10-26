@@ -23,7 +23,7 @@ def next_key():
     global current_key
     n = current_key + 1
     if n >= len(google_keys):
-        print('warning: Tried to switch keys, but there is no key left!!!')
+        warnings.warn('Tried to switch keys, but there is no key left!!!')
         return False
     else:
         current_key = n
