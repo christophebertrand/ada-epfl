@@ -5,7 +5,7 @@ import requests
 import json
 import warnings
 
-# fetch the google api keys
+# fetch the google api keys, they are stored in a file outside of the git repository.
 google_keys = [line.strip() for line in open('../../google-api-keys.txt', 'r')]
 current_key = 0
 
@@ -17,7 +17,7 @@ def get_key():
 
 def next_key():
     """
-    sets current_key + 1 iff there is another key in the file, does nothing otherwise
+    sets current_key + 1 if there is another key in the file, does nothing otherwise
     returns: True iff there is another key, false otherwise
     """
     global current_key
@@ -75,6 +75,10 @@ def find_canton_substring(name):
     return np.nan
 
 def find_canton_geonames(name):    
+    """
+    Tries to find the canton by queriing the geonames API
+    """
+    
     url_search = 'http://api.geonames.org/searchJSON'
     params = {
         'name': name,
@@ -99,7 +103,6 @@ def find_canton_geonames(name):
 def query_google_place_textsearch(query):
     """
     query: string - the query to be sent
-    key: string - a api key registered with google
     returns: the full answer of the query as a python object
     """
     url_google_places = 'https://maps.googleapis.com/maps/api/place/textsearch/json'
