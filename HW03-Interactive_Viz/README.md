@@ -1,4 +1,9 @@
 # 03 - Interactive Viz
+## Files for grading:
+* HW03-collect.ipynb (collection and cleaning of the data)
+* HW03-vizualization.ipynb (visualization of the data)
+* map_universities.py (some functions to query the google api for the data)
+* swiss_map.html, roestigraben_map.html (choropleth maps)
 
 ## Deadline
 Friday October 28, 2016 at 11:59PM
